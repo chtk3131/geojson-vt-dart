@@ -1,17 +1,17 @@
 import 'dart:math' as math;
 import 'classes.dart';
 
-
 SimpTile createTile(List features, z, tx, ty, GeoJSONVTOptions options) {
-  num tolerance = (z == options.maxZoom) ? 0 : options.tolerance / ((1 << z) * options.extent);
+  num tolerance = (z == options.maxZoom)
+      ? 0
+      : options.tolerance / ((1 << z) * options.extent);
 
   SimpTile tile = SimpTile([], z, tx, ty);
   tile.numFeatures = features.length;
 
   int len = features.length;
 
-  for(var feature in features)
-    addFeature(tile, feature, tolerance, options);
+  for (var feature in features) addFeature(tile, feature, tolerance, options);
 
   return tile;
 }
@@ -32,15 +32,15 @@ addFeature(SimpTile tile, feature, tolerance, options) {
       tile.numPoints++;
       tile.numSimplified++;
     }
-  }  else if (type == FeatureType.LineString) {
+  } else if (type == FeatureType.LineString) {
     addLine(simplified, geom, tile, tolerance, false, false);
-  } else if (type == FeatureType.MultiLineString || type == FeatureType.Polygon) {
+  } else if (type == FeatureType.MultiLineString ||
+      type == FeatureType.Polygon) {
     for (int i = 0; i < geom.length; i++) {
-      addLine(simplified, geom[i], tile, tolerance, type == FeatureType.Polygon, i == 0);
+      addLine(simplified, geom[i], tile, tolerance, type == FeatureType.Polygon,
+          i == 0);
     }
-
   } else if (type == FeatureType.MultiPolygon) {
-
     for (int k = 0; k < geom.length; k++) {
       final polygon = geom[k];
       for (int i = 0; i < polygon.length; i++) {
@@ -51,9 +51,9 @@ addFeature(SimpTile tile, feature, tolerance, options) {
 
   if (simplified.length > 0) {
     var tags;
-    if( feature.tags != null ) tags = feature.tags;
+    if (feature.tags != null) tags = feature.tags;
 
-    if (type == FeatureType.LineString && options['lineMetrics']) {
+    if (type == FeatureType.LineString && options.lineMetrics) {
       tags = {};
       feature.tags.forEach((key, val) {
         tags[key] = feature.tags[key];
@@ -62,10 +62,14 @@ addFeature(SimpTile tile, feature, tolerance, options) {
       tags['mapbox_clip_end'] = geom.end / geom.size;
     }
 
-    final t = (type == FeatureType.Polygon || type == FeatureType.MultiPolygon) ? 3 :
-    (type == FeatureType.LineString || type == FeatureType.MultiLineString) ? 2 : 1;
+    final t = (type == FeatureType.Polygon || type == FeatureType.MultiPolygon)
+        ? 3
+        : (type == FeatureType.LineString ||
+                type == FeatureType.MultiLineString)
+            ? 2
+            : 1;
 
-    final tileFeature = TileFeature( geometry: simplified, type: t, tags: tags);
+    final tileFeature = TileFeature(geometry: simplified, type: t, tags: tags);
 
     if (feature.id != null) {
       tileFeature.id = feature.id;
